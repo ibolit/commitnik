@@ -26,8 +26,13 @@ class InformerView(View):
         })
 
     def _get_version(self, commit):
-        all_tags = git(f'tag -l').split('\n')
-        return all_tags[-1]
+        all_tags = git('show-ref --tags').split('\n')
+        tags_on_commit = filter(lambda s: s.startswith(commit), all_tags)
+        prefix_length = len(' refs/tags/') + len(commit)
+        tags = list(map(lambda s: s[prefix_length:], tags_on_commit))
+        if tags:
+            return sorted(tags, reverse=True)[0]
+        return ''
 
     def _get_uptime(self, started):
         return int((timezone.now() - started).total_seconds())
