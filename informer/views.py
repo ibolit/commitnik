@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -9,10 +11,10 @@ class InformerView(APIView):
         current_commit_hash = git('rev-parse HEAD')
         commit_date = git(f'show -s --format=%ci "{current_commit_hash}"')
         branch = git('rev-parse --abbrev-ref HEAD')
-        version = self.get_version(current_commit_hash)
+        version = self._get_version(current_commit_hash)
 
-        started = None
-        uptime_seconds = None
+        started = settings.START_DATETIME
+        uptime_seconds = self._get_uptime(started)
 
         return Response({
             'commit': current_commit_hash,
@@ -23,6 +25,9 @@ class InformerView(APIView):
             'uptime_seconds': uptime_seconds,
         })
 
-    def get_version(self, commit):
+    def _get_version(self, commit):
         all_tags = git(f'tag -l').split('\n')
         return all_tags[-1]
+
+    def _get_uptime(self, started):
+        return int((timezone.now() - started).total_seconds())
