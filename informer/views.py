@@ -1,12 +1,12 @@
 from django.conf import settings
+from django.http import JsonResponse
 from django.utils import timezone
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from django.views import View
 
 from .git_wrapper import git
 
 
-class InformerView(APIView):
+class InformerView(View):
     def get(self, request):
         current_commit_hash = git('rev-parse HEAD')
         commit_date = git(f'show -s --format=%ci "{current_commit_hash}"')
@@ -16,7 +16,7 @@ class InformerView(APIView):
         started = settings.START_DATETIME
         uptime_seconds = self._get_uptime(started)
 
-        return Response({
+        return JsonResponse({
             'commit': current_commit_hash,
             'commit_date': commit_date,
             'branch': branch,
